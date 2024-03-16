@@ -16,5 +16,8 @@ public class SplayTester {
         System.out.print("Enter an integer n to initialize the splay tree: ");
         int n = s.nextInt();
         SplayTree tree = new SplayTree(n);
+        tree.preOrderPrint();
+
+        s.close();
     }
 }

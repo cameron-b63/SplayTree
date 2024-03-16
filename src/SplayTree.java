@@ -56,6 +56,41 @@ public class SplayTree {
         }
     }
 
+    // Helper function to help print the tree whenever needed.
+    // int directionIndicator is used to determine output based on RT, L, and R as given in the project instructions.
+    // 0 indicates root, 1 left, and 2 right.
+    private void recPreOrderPrint(Node node, int directionIndicator){
+        if(node == null){
+            return;
+        }
+
+        // Easiest way for me to handle directional printing
+        switch(directionIndicator){
+            case 0:{
+                System.out.print(node.getElement() + "RT ");
+                recPreOrderPrint(node.left, 1);
+                recPreOrderPrint(node.right, 2);
+                break;
+            }
+            case 1:{
+                System.out.print(node.getElement() + "L ");
+                recPreOrderPrint(node.left, 1);
+                recPreOrderPrint(node.right, 2);
+                break;
+            }
+            case 2:{
+                System.out.print(node.getElement() + "R ");
+                recPreOrderPrint(node.left, 1);
+                recPreOrderPrint(node.right, 2);
+                break;
+            }
+            default:{
+                System.out.println("\nSomething has gone horribly wrong in printing.\nSomehow, a direction indicator outside the range *you coded* was given.");
+                System.exit(1);
+            }
+        }
+    }
+
     // Standard binary tree search with a splay at the end
     // Returns a bool indicating whether the requested value was present within the tree (implying splay performed if true returned)
     // Effective wrapper over findNode(int k) with null case handling.
@@ -130,8 +165,9 @@ public class SplayTree {
         return;
     }
 
-    // Helper function to print the tree whenever needed. Used in the driver code to keep functions here pure.
+    // public-facing version of preOrderPrint to keep address of root private.
     public void preOrderPrint(){
+        recPreOrderPrint(this.root, 0);
         return;
     }
 }
