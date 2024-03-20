@@ -68,6 +68,7 @@ public class SplayTester {
                     break;
                 }
             }
+            // Reset shouldPrint if needed
             if(shouldPrint) tree.preOrderPrint();
             shouldPrint = true;
         }

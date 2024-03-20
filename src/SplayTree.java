@@ -6,13 +6,18 @@ public class SplayTree {
      As such, you'll be seeing little green compared to others, aside from documentation above methods in this code.
      I typically only comment lines that required my attention when programming.
      I hope that's alright.
+
+     My code is arranged as follows:
+     Class declaration
+        - Nested classes
+        - Instance variables
+        - Private helper methods
+        - Public methods
      */
     private class Node {
         // To properly implement any Tree, we'll need a Node class.
         // Since a splay tree is a special binary tree, the Node class includes left and right pointers.
         // The splay tree node also includes a parent field for rotations.
-        // This class literally speaks for itself so I'm not commenting any of the code.
-        // You've read java before :)
         private int element;
         private Node parent;
         private Node left;
@@ -28,8 +33,11 @@ public class SplayTree {
         public int getElement(){ return this.element; }
     }
 
+    // Thankfully this is all you need in the way of instance variables
     private Node root;
 
+    // Constructor used to initialize the tree given input (n) from user
+    // Initializes a completely unbalanced BST with 1 as the root and N as the rightmost child
     public SplayTree(int n){
         this.root = new Node(1); // Initialize root as just a Node with 1 in it
         // The following (goofy, admittedly) for loop just initializes the tree as specified in the project doc.
@@ -41,13 +49,13 @@ public class SplayTree {
         }
     }
 
-    // Alternative constructor, for use in deletion algorithm (subtree separation)
-    public SplayTree(){
+    // Alternative constructor, for use in deletion algorithm (builtin subtree separation)
+    // Kept private since SplayTester has no reason to see this constructor whatsoever
+    private SplayTree(){
         this.root = null;
     }
 
-    // Standard BST search, since I want to use this for convenience in other functions
-    // Token helper function
+    // Standard BST search, separate from search since I want to use this for convenience in other functions
     private Node findNode(Node node, int k){
         if(node == null) return null;
         if(k == node.getElement()){
@@ -61,15 +69,18 @@ public class SplayTree {
         }
     }
 
-    // Helper function to help print the tree whenever needed.
+    // Recursive helper function to help print the tree whenever needed.
     // int directionIndicator is used to determine output based on RT, L, and R as given in the project instructions.
+    // This was used to keep conditional checks and accesses to node instance variables to a minimum during printing.
+    // It also allowed me to use a switch statement instead of if-else blocks.
     // 0 indicates root, 1 left, and 2 right.
     private void recPreOrderPrint(Node node, int directionIndicator){
+        // Obvious base case
         if(node == null){
             return;
         }
 
-        // Easiest way for me to handle directional printing
+        // Best way for me to handle directional printing
         switch(directionIndicator){
             case 0:{
                 System.out.print(node.getElement() + "RT ");
@@ -88,7 +99,7 @@ public class SplayTree {
                 System.exit(1);
             }
         }
-        // Preorder is the same regardless
+        // Preorder is the same regardless of direction
         recPreOrderPrint(node.left, 1);
         recPreOrderPrint(node.right, 2);
     }
@@ -98,10 +109,16 @@ public class SplayTree {
     private void leftRotate(Node a){
         Node b = a.right;
         a.right = b.left;
+        
+        // Preserve subtree
         if(b.left != null){
             b.left.parent = a;
         }
+
+        // Set parent appropriately
         b.parent = a.parent;
+
+        // Set child direction appropriately
         if(a.parent == null){
             // passed parent must be root to get here
             this.root = b;
@@ -112,11 +129,14 @@ public class SplayTree {
             // passed parent is a right child
             a.parent.right = b;
         }
+
+        // Complete swap
         b.left = a;
         a.parent = b;
     }
 
     // Private helper for splaying - performs a right rotation instead
+    // Very little is different from above so fewer comments have been used
     private void rightRotate(Node a){
         Node b = a.left;
         a.left = b.right;
@@ -125,10 +145,8 @@ public class SplayTree {
         }
         b.parent = a.parent;
         if(a.parent == null){
-            // passed parent must be root to get here
             this.root = b;
         } else if(a == a.parent.right){
-            // passed parent is a right child
             a.parent.right = b;
         } else{
             a.parent.left = b;
@@ -168,12 +186,14 @@ public class SplayTree {
             return true;
         }
 
+        // Separate left subtree
         SplayTree leftSubtree = new SplayTree(); // I want splay operations accessible to me to splay to the specific position to the left of root
         leftSubtree.root = this.root.left;
         if (leftSubtree.root != null) {
             leftSubtree.root.parent = null;
         }
 
+        // Separate right subtree
         SplayTree rightSubtree = new SplayTree();
         rightSubtree.root = this.root.right;
         if(rightSubtree.root != null){
@@ -181,23 +201,25 @@ public class SplayTree {
         }
 
         if(leftSubtree.root != null){
+            // Find maximum in left subtree
             Node maxLeftSubtree = leftSubtree.root;
             while(maxLeftSubtree.right != null){
                 maxLeftSubtree = maxLeftSubtree.right;
             }
             // Bring maximum of left subtree to root of left subtree (because it will have no right child)
             leftSubtree.splay(maxLeftSubtree);
-            // Set right child of new root to be the right subtree's root
+            // Set right child of left subtree's new root (now null) to be the right subtree's root
             leftSubtree.root.right = rightSubtree.root;
-            // Set this newly made root to be root of overall tree
+            // Now that left and right are joined, set the root of the total tree
             this.root = leftSubtree.root;
             this.root.parent = null;
         } else{
-            // No reason to worry about left subtree
+            // No reason to worry about left subtree if there isn't one
             this.root = rightSubtree.root;
             this.root.parent = null;
         }
 
+        // If the code fell through to here, something was successful
         return true;
     }
 
@@ -225,12 +247,12 @@ public class SplayTree {
             }
         }
 
-        // Assign that parent
+        // Assign that parent to child
         child.parent = parent;
 
         // Correctly assign child to parent
         if(parent == null){
-            // We just added the root of the tree in this case
+            // We just added the root of the tree in this case - should never actually be taken but I wanted to account for it
             root = child;
         } else if(k < parent.getElement()){
             parent.left = child;
@@ -252,6 +274,7 @@ public class SplayTree {
         while(toSplay.parent != null){
             // Handle rotations case-by-case
             if(toSplay.parent == root){
+                // Zig rotations
                 if(toSplay == root.left){
                     // Left case
                     rightRotate(root);
@@ -260,6 +283,7 @@ public class SplayTree {
                     leftRotate(root);
                 }
             } else {
+                // Zig-zig and zig-zag rotations
                 Node parent = toSplay.parent;
                 Node grandparent = parent.parent;
 
@@ -284,7 +308,7 @@ public class SplayTree {
         }
     }
 
-    // public-facing version of preOrderPrint to keep address of root private.
+    // public-facing version of recPreOrderPrint, used to keep address of root private.
     public void preOrderPrint(){
         recPreOrderPrint(this.root, 0);
         System.out.println();
