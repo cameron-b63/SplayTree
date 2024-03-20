@@ -212,10 +212,13 @@ public class SplayTree {
             leftSubtree.root.right = rightSubtree.root;
             // Now that left and right are joined, set the root of the total tree
             this.root = leftSubtree.root;
+            this.root.left.parent = this.root;
+            this.root.right.parent = this.root;
             this.root.parent = null;
         } else{
             // No reason to worry about left subtree if there isn't one
             this.root = rightSubtree.root;
+            this.root.right.parent = this.root;
             this.root.parent = null;
         }
 
