@@ -27,7 +27,7 @@ public class SplayTester {
         String insertPrompt = "Enter the integer you'd like to insert: ";
         String deletePrompt = "Enter the integer you'd like to delete: ";
         boolean shouldContinueRunningPromptLoop = true;
-
+        boolean shouldPrint = true;
         // Prompt loop
         while(shouldContinueRunningPromptLoop){
             System.out.println(menuPromptString);
@@ -40,7 +40,8 @@ public class SplayTester {
                     System.out.print(searchPrompt);
                     int inputInt = s.nextInt();
                     s.nextLine(); // Clear buffer
-                    tree.search(inputInt);
+                    shouldPrint = tree.search(inputInt);
+                    if(!shouldPrint) System.out.println("You should probably search for something present in the tree...");
                     break;
                 }
                 case 'b':{
@@ -48,7 +49,8 @@ public class SplayTester {
                     System.out.print(insertPrompt);
                     int inputInt = s.nextInt();
                     s.nextLine(); // Clear buffer
-                    tree.insert(inputInt);
+                    shouldPrint = tree.insert(inputInt);
+                    if(!shouldPrint) System.out.println("Don't give me duplicates...");
                     break;
                 }
                 case 'c':{
@@ -56,7 +58,8 @@ public class SplayTester {
                     System.out.print(deletePrompt);
                     int inputInt = s.nextInt();
                     s.nextLine(); // Clear buffer
-                    tree.delete(inputInt);
+                    shouldPrint = tree.delete(inputInt);
+                    if(!shouldPrint) System.out.println("You should probably delete something present in the tree...");
                     break;
                 }
                 default:{
@@ -65,7 +68,8 @@ public class SplayTester {
                     break;
                 }
             }
-            tree.preOrderPrint();
+            if(shouldPrint) tree.preOrderPrint();
+            shouldPrint = true;
         }
         s.close();
     }

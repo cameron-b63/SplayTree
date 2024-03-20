@@ -3,8 +3,8 @@ public class SplayTree {
      Actual splay tree implementation for CS 3345.004 project 1.
 
      I really like writing code that speaks for itself.
-     As such, you'll be seeing quite little green aside from documentation above methods in this code.
-     Only really in lines that were confusing to me when I needed to write/bugfix them, so I write down my thinking as reference.
+     As such, you'll be seeing little green compared to others, aside from documentation above methods in this code.
+     I typically only comment lines that required my attention when programming.
      I hope that's alright.
      */
     private class Node {
@@ -18,11 +18,11 @@ public class SplayTree {
         private Node left;
         private Node right;
 
-        protected Node(int element, Node left, Node right){
+        protected Node(int element){
             this.element = element;
             this.parent = null;
-            this.left = left;
-            this.right = right;
+            this.left = null;
+            this.right = null;
         }
 
         public int getElement(){ return this.element; }
@@ -31,17 +31,17 @@ public class SplayTree {
     private Node root;
 
     public SplayTree(int n){
-        this.root = new Node(1, null, null); // Initialize root as just a Node with 1 in it
+        this.root = new Node(1); // Initialize root as just a Node with 1 in it
         // The following (goofy, admittedly) for loop just initializes the tree as specified in the project doc.
         Node currentNode = root;
         for(int i = 2; i < n+1; i++){
-            currentNode.right = new Node(i, null, null);
+            currentNode.right = new Node(i);
             currentNode.right.parent = currentNode;
             currentNode = currentNode.right;
         }
     }
 
-    // Alternative constructor, for use in deletion
+    // Alternative constructor, for use in deletion algorithm (subtree separation)
     public SplayTree(){
         this.root = null;
     }
@@ -49,6 +49,7 @@ public class SplayTree {
     // Standard BST search, since I want to use this for convenience in other functions
     // Token helper function
     private Node findNode(Node node, int k){
+        if(node == null) return null;
         if(k == node.getElement()){
             return node;
         } else if(k < node.getElement()){
@@ -72,20 +73,14 @@ public class SplayTree {
         switch(directionIndicator){
             case 0:{
                 System.out.print(node.getElement() + "RT ");
-                recPreOrderPrint(node.left, 1);
-                recPreOrderPrint(node.right, 2);
                 break;
             }
             case 1:{
                 System.out.print(node.getElement() + "L ");
-                recPreOrderPrint(node.left, 1);
-                recPreOrderPrint(node.right, 2);
                 break;
             }
             case 2:{
                 System.out.print(node.getElement() + "R ");
-                recPreOrderPrint(node.left, 1);
-                recPreOrderPrint(node.right, 2);
                 break;
             }
             default:{
@@ -93,8 +88,13 @@ public class SplayTree {
                 System.exit(1);
             }
         }
+        // Preorder is the same regardless
+        recPreOrderPrint(node.left, 1);
+        recPreOrderPrint(node.right, 2);
     }
 
+    // Private helper for splaying - performs a left rotation on the subtree given by the parent
+    // I avoided names like "parent" and "child" since that got confusing once I began swapping.
     private void leftRotate(Node a){
         Node b = a.right;
         a.right = b.left;
@@ -104,7 +104,7 @@ public class SplayTree {
         b.parent = a.parent;
         if(a.parent == null){
             // passed parent must be root to get here
-            this.root = a;
+            this.root = b;
         } else if(a == a.parent.left){
             // passed parent is a left child
             a.parent.left = b;
@@ -116,6 +116,7 @@ public class SplayTree {
         a.parent = b;
     }
 
+    // Private helper for splaying - performs a right rotation instead
     private void rightRotate(Node a){
         Node b = a.left;
         a.left = b.right;
@@ -158,16 +159,17 @@ public class SplayTree {
         if(toDelete == null){
             return false;
         }
+
         splay(toDelete);
-        Node leftChild = toDelete.left;
-        Node rightChild = toDelete.right;
-        if(leftChild == null){
-            this.root = rightChild;
+
+        if(this.root.left == null){
+            this.root = this.root.right;
+            this.root.parent = null;
             return true;
         }
 
-        SplayTree leftSubtree = new SplayTree();
-        leftSubtree.root = root.left;
+        SplayTree leftSubtree = new SplayTree(); // I want splay operations accessible to me to splay to the specific position to the left of root
+        leftSubtree.root = this.root.left;
         if (leftSubtree.root != null) {
             leftSubtree.root.parent = null;
         }
@@ -179,19 +181,21 @@ public class SplayTree {
         }
 
         if(leftSubtree.root != null){
-            Node maxLeftSubtree = leftChild;
+            Node maxLeftSubtree = leftSubtree.root;
             while(maxLeftSubtree.right != null){
                 maxLeftSubtree = maxLeftSubtree.right;
             }
-            // Bring maximum of left subtree to root of left subtree (it will have no right child)
+            // Bring maximum of left subtree to root of left subtree (because it will have no right child)
             leftSubtree.splay(maxLeftSubtree);
             // Set right child of new root to be the right subtree's root
             leftSubtree.root.right = rightSubtree.root;
             // Set this newly made root to be root of overall tree
             this.root = leftSubtree.root;
+            this.root.parent = null;
         } else{
             // No reason to worry about left subtree
             this.root = rightSubtree.root;
+            this.root.parent = null;
         }
 
         return true;
@@ -202,7 +206,7 @@ public class SplayTree {
     // Splay newly inserted node to root
     // Returns a bool indicating whether a splay occured
     public boolean insert(int k){
-        Node child = new Node(k, null, null);
+        Node child = new Node(k);
         Node currentNode = root;
         Node parent = null;
 
@@ -211,10 +215,10 @@ public class SplayTree {
             parent = currentNode;
             if(k < currentNode.getElement()){
                 // Left traversal
-                currentNode = parent.left;
+                currentNode = currentNode.left;
             } else if(k > currentNode.getElement()) {
                 // Right traversal
-                currentNode = parent.right;
+                currentNode = currentNode.right;
             } else{
                 // Duplicate arrived at
                 return false;
